@@ -4,7 +4,7 @@
 ;;; Version: 0.0.1
 
 ;;; Commentary:
-;; the dssi package is a front end for standard dssi utilities
+;; the dssi package is a front-end for standard dssi utilities
 ;; 
 ;;
 
@@ -54,7 +54,7 @@
 (defun dssi-start-plugin (name alist)
   "NAME is the name of plugin.  ALIST is an alist obtained by calling `dssi-alist-plugins'."
   (interactive
-   (let ((alist (dssi--list-plugins)))
+   (let ((alist (dssi-alist-plugins)))
      (let ((name (ido-completing-read "DSSI plugin: "
 				      (mapcar (lambda (el) (cdr (assq 'name el)))
 					      alist))))
@@ -71,14 +71,10 @@
 
 (defvar dssi-plugin-alist)
 
-(dssi--list-plugins)
-
-dssi-plugin-alist
-
 (defvar helm-dssi-plugins-sources
   '((name . "DSSI Plugins")
     (init . (lambda ()
-	      (setq dssi-plugin-alist (dssi--list-plugins))))
+	      (setq dssi-plugin-alist (dssi-list-plugins))))
     (candidates . (lambda () (mapcar (lambda (el)
 				       (let ((name (cdr (assq 'name el)))
 					     (description (cdr (assq 'description el))))
