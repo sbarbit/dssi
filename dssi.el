@@ -13,11 +13,10 @@
 (require 'cl-lib)
 (require 'rx)
 (require 'ido)
-(require 'helm)
+;; (require 'helm)
 (require 'helm-adaptive)
 
 (defvar dssi-plugin-description-regexp
-  "Regexp that matches plugin description"
   (rx bol
       (1+ (any space))
       (group (1+ (not (any space))))
@@ -32,7 +31,7 @@
 	  (cons 'description (replace-match "\\2" nil nil line))
 	  (cons 'path ""))))
 
-(defun dssi--list-plugins ()
+(defun dssi-alist-plugins ()
   "Construct an alist of plugins in DSSI_PATH."
   (let ((lines (reverse (process-lines "dssi_list_plugins")))
 	(res) (descriptions))
@@ -50,8 +49,10 @@
 	(setq descriptions nil))))
     res))
 
+
+
 (defun dssi-start-plugin (name alist)
-  "NAME is the name of plugin.  ALIST is an alist obtained by calling `dssi-list-plugins'."
+  "NAME is the name of plugin.  ALIST is an alist obtained by calling `dssi-alist-plugins'."
   (interactive
    (let ((alist (dssi--list-plugins)))
      (let ((name (ido-completing-read "DSSI plugin: "
@@ -70,19 +71,28 @@
 
 (defvar dssi-plugin-alist)
 
-(defvar helm-dssi-plugins
+(dssi--list-plugins)
+
+dssi-plugin-alist
+
+(defvar helm-dssi-plugins-sources
   '((name . "DSSI Plugins")
     (init . (lambda ()
 	      (setq dssi-plugin-alist (dssi--list-plugins))))
-    (candidates . (lambda ()
-		    (mapcar (lambda (el) (cdr (assq 'name el))) dssi-plugin-alist)))
+    (candidates . (lambda () (mapcar (lambda (el)
+				       (let ((name (cdr (assq 'name el)))
+					     (description (cdr (assq 'description el))))
+					 (cons (format "%s --- %s" name description) name)))
+				     dssi-plugin-alist)))
+    (action . (("start plugin" . (lambda (n) (dssi-start-plugin n dssi-plugin-alist))))) 
     (filtered-candidate-transformer
      helm-adaptive-sort)
-    ))
+    (actions . ())))
 
 (defun helm-dssi-plugins ()
+  "Helm for dssi plugins."
   (interactive)
-  (helm 'helm-dssi-plugins "*DSSI Plugins*"))
+  (helm :sources 'helm-dssi-plugins-sources))
 
 
 ;;; dssi.el ends here
